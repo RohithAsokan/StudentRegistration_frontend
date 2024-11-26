@@ -23,19 +23,32 @@ const ProfilePage = () => {
     }
 
     return (
-        <div >
-            <div class="profilePage1">
-                <h1 style={{fontSize:"xx-large", marginBottom:"100px", marginLeft:"20px"}}>Welcome, {profileData.username}</h1>
-            </div>
-            <div class="profilePage2">
-                <p>User Name : {profileData.username}</p>
-                <p>Password: {profileData.password}</p>
-                <p>Name: {profileData.name}</p>
-                <p>Phone: {profileData.phone}</p>
-                <p>Email: {profileData.email}</p>
-                <button onClick={() => navigate(`/edit/${username}`)}>Edit</button>
-
-            </div>
+        <div className="profile-container">
+            <h1>Welcome, {profileData.username}</h1>
+            <table className="profile-table">
+                <thead>
+                    <tr>
+                        <th>User Name</th>
+                        <th>Password</th>
+                        <th>Name</th>
+                        <th>Phone Number</th>
+                        <th>Email Id</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{profileData.username}</td>
+                        <td>{profileData.password}</td>
+                        <td>{profileData.name}</td>
+                        <td>{profileData.phone}</td>
+                        <td>{profileData.email}</td>
+                        <td>
+                            <button onClick={() => navigate(`/edit/${username}`)}>Edit</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     );
 };
