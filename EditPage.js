@@ -1,53 +1,61 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import './style.css';
 
 const EditPage = () => {
-    const { username } = useParams();
+    const userId = localStorage.getItem("userId");
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
-        name: "",
+        username: "",
         password: "",
+        name: "",
         phone: "",
         email: "",
     });
+
+    const [usernameAvailable, setUsernameAvailable] = useState(true);
     const [message, setMessage] = useState("");
+
     useEffect(() => {
-        fetch(`http://localhost:8080/student-registration/my-profile/${username}`)
+        if (!userId) {
+            navigate("/login");
+            return;
+        }
+
+        fetch(`http://localhost:8080/student-registration/my-profile/${userId}`)
             .then((response) => response.json())
-            .then((data) => {
-                setFormData({
-                    name: data.name,
-                    password: data.password,
-                    phone: data.phone,
-                    email: data.email,
-                });
-            })
-            .catch((error) => setMessage("Error fetching user details."));
-    }, [username]);
+            .then((data) => setFormData(data))
+            .catch(() => setMessage("Error fetching user details."));
+    }, [userId, navigate]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+
+        if (name === "username") {
+            fetch(`http://localhost:8080/student-registration/check-username?username=${value}`)
+                .then((response) => response.json())
+                .then((data) => setUsernameAvailable(data.available))
+                .catch(() => setUsernameAvailable(false));
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`http://localhost:8080/student-registration/edit-details/${username}`, {
+            const response = await fetch(`http://localhost:8080/student-registration/edit-details/${userId}`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
             });
 
             if (response.ok) {
                 setMessage("Details updated successfully!");
-                setTimeout(() => {
-                    window.location.href = `/profile/${username}`;
-                }, 1000);
+                setTimeout(() => navigate(`/profile/${userId}`), 1000);
             } else {
-                setMessage("Error updating details. Please try again.");
+                const errorData = await response.json();
+                setMessage(errorData.message || "Error updating details. Please try again.");
             }
         } catch (error) {
             setMessage("An error occurred while updating details.");
@@ -55,29 +63,67 @@ const EditPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: "400px", margin: "auto", padding: "20px", marginTop:"50px" }}>
-            <h2 style={{fontSize:"x-large"}}>Edit Details</h2>
+        <div className="container">
+            <h2>Edit Details</h2>
             <form onSubmit={handleSubmit}>
                 <div>
-                    <label>Name:</label>
-                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
+                    <label>Username:</label>
+                    <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleInputChange}
+                        required
+                    />
+                    {!usernameAvailable && <p className="error">Username already exists!</p>}
                 </div>
                 <div>
                     <label>Password:</label>
-                    <input type="password" name="password" value={formData.password} onChange={handleInputChange} required />
+                    <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Name:</label>
+                    <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                    />
                 </div>
                 <div>
                     <label>Phone:</label>
-                    <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} required />
+                    <input
+                        type="text"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                    />
                 </div>
                 <div>
                     <label>Email:</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} required />
+                    <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                    />
                 </div>
-                <button type="submit">Update</button>
+                <button type="submit" disabled={!usernameAvailable}>
+                    Update
+                </button>
             </form>
             {message && <p>{message}</p>}
         </div>
+
     );
 };
 
