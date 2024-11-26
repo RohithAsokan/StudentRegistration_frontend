@@ -59,6 +59,50 @@ button:hover {
     margin-top: 70px;
     text-align: center;
 }
+.profile-container {
+    margin: 50px;
+    font-family: Arial, sans-serif;
+}
+
+.profile-table {
+    width: 80%;
+    border-collapse: collapse;
+    margin-top: 100px;
+    margin-left: 100px;
+    text-align: center;
+}
+
+.profile-table th, .profile-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.profile-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+.profile-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.profile-table td {
+    text-align: center;
+}
+
+button {
+    padding: 15px 30px;
+    margin-right: 50px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
 
 @media (max-width: 600px) {
     h1, h2 {
