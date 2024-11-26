@@ -68,54 +68,24 @@ const EditPage = () => {
             <form onSubmit={handleSubmit}>
                 <div>
                     <label>Username:</label>
-                    <input
-                        type="text"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleInputChange}
-                        required
-                    />
+                    <input type="text" name="username" value={formData.username} onChange={handleInputChange} required />
                     {!usernameAvailable && <p className="error">Username already exists!</p>}
                 </div>
                 <div>
                     <label>Password:</label>
-                    <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        required
-                    />
+                    <input type="password" name="password" value={formData.password} onChange={handleInputChange} required />
                 </div>
                 <div>
                     <label>Name:</label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                    />
+                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
                 </div>
                 <div>
                     <label>Phone:</label>
-                    <input
-                        type="text"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        required
-                    />
+                    <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} required />
                 </div>
                 <div>
                     <label>Email:</label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                    />
+                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} required />
                 </div>
                 <button type="submit" disabled={!usernameAvailable}>
                     Update
