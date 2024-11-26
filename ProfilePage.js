@@ -3,24 +3,29 @@ import { useParams, useNavigate } from "react-router-dom";
 import './style.css';
 
 const ProfilePage = () => {
-    const { username } = useParams();
     const [profileData, setProfileData] = useState(null);
+    const { userId } = useParams();
     const navigate = useNavigate();
+
     useEffect(() => {
-        fetch(`http://localhost:8080/student-registration/my-profile/${username}`)
+        if (!userId) {
+            navigate("/login");
+            return;
+        }
+
+        fetch(`http://localhost:8080/student-registration/my-profile/${userId}`)
             .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Failed to fetch profile data");
-                }
+                if (!response.ok) throw new Error("Failed to fetch profile data.");
                 return response.json();
             })
             .then((data) => setProfileData(data))
-            .catch((error) => console.error("Error fetching profile data:", error));
-    }, [username]);
+            .catch((error) => {
+                console.error("Error fetching profile data:", error);
+                navigate("/login");
+            });
+    }, [userId, navigate]);
 
-    if (!profileData) {
-        return <p>Loading user details...</p>;
-    }
+    if (!profileData) return <p>Loading user details...</p>;
 
     return (
         <div className="profile-container">
@@ -28,11 +33,11 @@ const ProfilePage = () => {
             <table className="profile-table">
                 <thead>
                     <tr>
-                        <th>User Name</th>
+                        <th>Username</th>
                         <th>Password</th>
                         <th>Name</th>
-                        <th>Phone Number</th>
-                        <th>Email Id</th>
+                        <th>Phone</th>
+                        <th>Email</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -44,7 +49,7 @@ const ProfilePage = () => {
                         <td>{profileData.phone}</td>
                         <td>{profileData.email}</td>
                         <td>
-                            <button onClick={() => navigate(`/edit/${username}`)}>Edit</button>
+                            <button onClick={() => navigate("/edit")}>Edit</button>
                         </td>
                     </tr>
                 </tbody>
