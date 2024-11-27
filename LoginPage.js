@@ -4,10 +4,12 @@ import './style.css';
 const LoginPage = () => {
     const [formData, setFormData] = useState({ username: "", password: "" });
     const [message, setMessage] = useState("");
+    const [error, setError] = useState("");
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+        setError(""); // Clear error message when typing
     };
 
     const handleSubmit = async (e) => {
@@ -20,42 +22,41 @@ const LoginPage = () => {
                 },
                 body: JSON.stringify(formData),
             });
-            const result = await response.json();
+            const result = await response.text();
+
             if (response.ok) {
+                localStorage.setItem("userId", result.trim());
                 setMessage("Login successful!");
-                localStorage.setItem("userId", result.userId);
                 setTimeout(() => {
-                    window.location.href = `/profile/${result.userId}`;
+                    window.location.href = `/profile/${result.trim()}`;
                 }, 1000);
             } else {
-                setMessage(result.message || "Invalid username or password.");
+                setError(result);
             }
-        } 
-        catch (error) {
-            setMessage("An error occurred during login. Please try again.");
+        } catch (error) {
+            console.error("Login Error:", error);
+            setError("An error occurred during login. Please try again.");
         }
     };
 
     return (
-        <div className="container">
+        <div style={{ maxWidth: "400px", margin: "auto", padding: "20px" }}>
             <h2>Login</h2>
             <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label htmlFor="username">Username:</label>
+                <div>
+                    <label>Username:</label>
                     <input
                         type="text"
-                        id="username"
                         name="username"
                         value={formData.username}
                         onChange={handleInputChange}
                         required
                     />
                 </div>
-                <div className="form-group">
-                    <label htmlFor="password">Password:</label>
+                <div>
+                    <label>Password:</label>
                     <input
                         type="password"
-                        id="password"
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
@@ -64,7 +65,8 @@ const LoginPage = () => {
                 </div>
                 <button type="submit">Login</button>
             </form>
-            {message && <p className="message">{message}</p>}
+            {message && <p style={{ color: "green" }}>{message}</p>}
+            {error && <p style={{ color: "red" }}>{error}</p>}
         </div>
     );
 };
