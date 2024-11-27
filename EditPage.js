@@ -23,7 +23,7 @@ const EditPage = () => {
             return;
         }
 
-        fetch(`http://localhost:8080/student-registration/my-profile/${userId}`)
+        fetch(`http://localhost:8080/student-registration/profile/${userId}`)
             .then((response) => response.json())
             .then((data) => setFormData(data))
             .catch(() => setMessage("Error fetching user details."));
@@ -32,19 +32,25 @@ const EditPage = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-
+    
         if (name === "username") {
-            fetch(`http://localhost:8080/student-registration/check-username?username=${value}`)
-                .then((response) => response.json())
-                .then((data) => setUsernameAvailable(data.available))
+            fetch(`http://localhost:8080/student-registration/check-username?username=${value}&userId=${userId}`)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Failed to check username availability.");
+                    }
+                    return response.json();
+                })
+                .then((isAvailable) => setUsernameAvailable(isAvailable))
                 .catch(() => setUsernameAvailable(false));
         }
     };
+    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`http://localhost:8080/student-registration/edit-details/${userId}`, {
+            const response = await fetch(`http://localhost:8080/student-registration/update/${userId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
