@@ -4,6 +4,8 @@ import './style.css';
 
 const ProfilePage = () => {
     const [profileData, setProfileData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const { userId } = useParams();
     const navigate = useNavigate();
 
@@ -13,19 +15,33 @@ const ProfilePage = () => {
             return;
         }
 
-        fetch(`http://localhost:8080/student-registration/my-profile/${userId}`)
-            .then((response) => {
-                if (!response.ok) throw new Error("Failed to fetch profile data.");
-                return response.json();
-            })
-            .then((data) => setProfileData(data))
-            .catch((error) => {
+        const fetchProfile = async () => {
+            try {
+                const response = await fetch(`http://localhost:8080/student-registration/profile/${userId}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch profile data.");
+                }
+                const data = await response.json();
+                setProfileData(data);
+            } catch (error) {
                 console.error("Error fetching profile data:", error);
-                navigate("/login");
-            });
+                setError("Unable to load profile.");
+                setTimeout(() => navigate("/login"), 3000);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfile();
     }, [userId, navigate]);
 
-    if (!profileData) return <p>Loading user details...</p>;
+    if (loading) {
+        return <p>Loading user details...</p>;
+    }
+
+    if (error) {
+        return <p className="error-message">{error}</p>;
+    }
 
     return (
         <div className="profile-container">
@@ -49,7 +65,7 @@ const ProfilePage = () => {
                         <td>{profileData.phone}</td>
                         <td>{profileData.email}</td>
                         <td>
-                            <button onClick={() => navigate("/edit")}>Edit</button>
+                            <button onClick={() => navigate(`/edit/${userId}`)}>Edit</button>
                         </td>
                     </tr>
                 </tbody>
