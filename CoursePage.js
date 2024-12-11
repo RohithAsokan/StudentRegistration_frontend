@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { CircularProgress} from "@mui/material";
 import "./course.css";
 
 const formatDate = (date) => {
   const options = { year: "numeric", month: "long", day: "numeric" };
   return date.toLocaleDateString("en-US", options);
+};
+
+const extractUserIdFromToken = (token) => {
+  if (!token) return null;
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`).join(''));
+  const payload = JSON.parse(jsonPayload);
+  return payload.sub;
 };
 
 const CoursePage = () => {
@@ -14,69 +24,105 @@ const CoursePage = () => {
   const currentDate = formatDate(new Date());
   const { userId } = useParams();
   const navigate = useNavigate();
-  const BASE_URL = "http://localhost:8080";
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const fetchCourses = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/getcourses`);
+        const response = await fetch(`http://localhost:8080/getcourses`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`, 
+            'Content-Type': 'application/json',
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           setCourses(data);
         }
       } 
       catch (error) {
-        console.error(error.message);
+        console.error("Error fetching courses:", error.message);
       }
     };
 
     fetchCourses();
-  }, []); 
+  }, []);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = extractUserIdFromToken(token);
+
+    if (!userId) {
+      navigate("/login");
+      return;
+    }
+
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/student-registration/profile/${userId}`);
+        const response = await fetch(`http://localhost:8080/student-registration/profile/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           setUserData(data);
         }
       } 
       catch (error) {
-        console.error(error.message);
+        console.error("Error fetching user data:", error.message);
       }
     };
     fetchUserData();
-  }, [userId]); 
+  }, [navigate]);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = extractUserIdFromToken(token);
+
     const fetchEnrolledCourses = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/student-registration/${userId}/enrolledcourses`);
+        const response = await fetch(`http://localhost:8080/student-registration/${userId}/enrolledcourses`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           setEnrolledCourses(data);
         }
       } 
       catch (error) {
-        console.error(error.message);
+        console.error("Error fetching enrolled courses:", error.message);
       }
     };
     fetchEnrolledCourses();
-  }, [userId]); 
+  }, [navigate]);
 
   const handleEnroll = async (course) => {
+    const token = localStorage.getItem("token");
+    const userId = extractUserIdFromToken(token);
+
     try {
-      const response = await fetch(`${BASE_URL}/student-registration/${userId}/enrollcourse`, {
+      const response = await fetch(`http://localhost:8080/student-registration/${userId}/enrollcourse`, {
         method: "POST",
         headers: {
+          'Authorization': `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(course),
       });
       if (response.ok) {
-        setEnrolledCourses((prevCourses) => [...prevCourses, course]);
-        const updatedEnrolledCourses = await fetch(`${BASE_URL}/student-registration/${userId}/enrolledcourses`);
+        //const message = await response.text();
+        //alert(message);
+        const updatedEnrolledCourses = await fetch(`http://localhost:8080/student-registration/${userId}/enrolledcourses`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
         if (updatedEnrolledCourses.ok) {
           const data = await updatedEnrolledCourses.json();
           setEnrolledCourses(data);
@@ -84,7 +130,7 @@ const CoursePage = () => {
       }
     } 
     catch (error) {
-      console.error(error.message);
+      console.error("Error enrolling course:", error.message);
     }
   };
 
@@ -124,7 +170,7 @@ const CoursePage = () => {
               </div>
             ))
           ) : (
-            <p>No courses available. Check back later!</p>
+            <p>No courses available.</p>
           )}
         </section>
       </div>
@@ -140,8 +186,15 @@ const CoursePage = () => {
           {enrolledCourses.length > 0 ? (
             enrolledCourses.map((course) => (
               <div className="learning-progress" key={course.courseId}>
-                <p className="course-name">{course.courseName}</p>
+                <div className="course-header">
+                  <p className="course-name">{course.courseName}</p>
+                  <div className="progress-container">
+                      <CircularProgress variant="determinate" size={35} value={Math.floor(Math.random() * 101)} />
+                      <span className="progress-label">{`${Math.floor(Math.random() * 101)}%`}</span>
+                  </div>
+                </div>
                 <p className="course-description">{course.courseDescription}</p>
+                
               </div>
             ))
           ) : (
@@ -154,4 +207,3 @@ const CoursePage = () => {
 };
 
 export default CoursePage;
-
